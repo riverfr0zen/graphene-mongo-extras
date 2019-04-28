@@ -1,9 +1,10 @@
-This project is in a very early state. It achieves most of the functionality below, but very minimally at the moment. 
+This project is in a very early state. It achieves the core functionality below, but is missing niceties such as configuration options.
 
-Better docs will come later. For now, please see the tests for examples. Test are at:
+Better docs will come later. For now, please see the tests:
 * [filtering tests](graphene_mongo_extras/filtering/tests)
 * [other tests](graphene_mongo_extras/tests)
 
+Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphene-mongo-extras-examples) for a demo app and query examples.
 
 # Overview
 Provides some additional functionality on top of [graphene-mongo](https://github.com/graphql-python/graphene-mongo)
