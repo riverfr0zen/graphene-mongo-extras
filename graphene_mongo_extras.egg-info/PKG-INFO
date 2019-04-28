@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: graphene-mongo-extras
+Version: 0.1.0
+Summary: Filtering and interfaces for graphene-mongo
+Home-page: UNKNOWN
+Author: Irfan Baig
+Author-email: riverfr0zen@elitemail.org
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires-Python: >=3.6.7,<4.0.0
