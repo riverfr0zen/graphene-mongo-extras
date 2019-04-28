@@ -12,5 +12,6 @@ Provides some additional functionality on top of [graphene-mongo](https://github
     - Filter using Mongoengine [query operators](http://docs.mongoengine.org/guide/querying.html#query-operators)
     - Provides the correct query operators in GraphQL for each field type
     - Nested filtering with AND/OR logic for filter sets
+    - Ordering of results
 * total count in ConnectionField graphql queries (CountableConnectionBase)
 * a way to set up interfaces (MongoengineInterface)
