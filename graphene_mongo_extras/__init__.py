@@ -5,9 +5,15 @@ from graphene.types.utils import yank_fields_from_attrs
 from graphene_mongo.utils import is_valid_mongoengine_model
 from graphene_mongo.registry import Registry, get_global_registry
 from graphene.relay import Connection
-
+from .filtering.fields import FilteringConnectionField
 
 __version__ = '0.1.0'
+
+__all__ = [
+    'CountableConnectionBase',
+    'FilteringConnectionField',
+    'MongoengineInterface'
+]
 
 
 class CountableConnectionBase(Connection):
