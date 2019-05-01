@@ -1,0 +1,2 @@
+graphene-mongo<0.3.0,>=0.2.3
+graphene<3.0,>=2.1
