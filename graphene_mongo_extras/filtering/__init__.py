@@ -29,7 +29,7 @@ class FiltersetBase(graphene.InputObjectType):
     op = graphene.String(default_value="AND")
 
 
-def filters_factory(model, as_list=False):
+def filters_factory(model, filtering_opts={}, as_list=False):
     field_filters = {}
     graphene_mongo_registry = get_global_registry()
     filters_classname = "{}Filters".format(model.__name__)
@@ -75,7 +75,11 @@ def filters_factory(model, as_list=False):
 
 
 def filterset_factory(model, depth=DEFAULT_FILTERSET_DEPTH,
-                      filters_class=None, filterset_class=None):
+                      filtering_opts={}, filters_class=None,
+                      filterset_class=None):
+    if 'depth' in filtering_opts:
+        depth = filtering_opts['depth']
+
     # logger.debug([field for fieldname, field in model._fields.items()])
     if not filters_class:
         filters_class = filters_factory(model)
@@ -94,7 +98,9 @@ def filterset_factory(model, depth=DEFAULT_FILTERSET_DEPTH,
 
     if depth > 0:
         depth = depth - 1
-        return filterset_factory(model, depth,
-                                 filters_class, new_filterset_class)
+        return filterset_factory(model, depth=depth,
+                                 filtering_opts=filtering_opts,
+                                 filters_class=filters_class,
+                                 filterset_class=new_filterset_class)
     # logger.debug(FiltersRegistry._registry.keys())
     return new_filterset_class

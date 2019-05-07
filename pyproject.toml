@@ -7,7 +7,8 @@ authors = ["Irfan Baig <riverfr0zen@elitemail.org>"]
 [tool.poetry.dependencies]
 python = "^3.6.7"
 graphene = "^2.1"
-graphene-mongo = "^0.2.3"
+#graphene-mongo = "^0.2.3"
+graphene-mongo = {git = "https://github.com/riverfr0zen/graphene-mongo.git"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.0"

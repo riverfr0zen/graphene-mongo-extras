@@ -3,8 +3,10 @@ import graphene
 from graphql_relay.node.node import to_global_id
 from graphene.relay import Node
 from datetime import datetime
+from .. import FiltersRegistry
 from ..fields import FilteringConnectionField
-from graphene_mongo import MongoengineObjectType
+#from graphene_mongo import MongoengineObjectType
+from graphene_mongo_extras import MongoengineExtrasType
 from mongoengine import Document, EmbeddedDocument
 from mongoengine.fields import (
     DateTimeField,
@@ -51,7 +53,7 @@ def setup_data(setup_mongo):
     HighScore.drop_collection()
 
 
-class HighScoreType(MongoengineObjectType):
+class HighScoreType(MongoengineExtrasType):
     class Meta:
         model = HighScore
         interfaces = (Node,)
@@ -68,6 +70,11 @@ schema = graphene.Schema(
         HighScoreType,
     ]
 )
+
+
+def test_filterset_depth():
+    import logging
+    logging.debug(dir(FiltersRegistry._registry['HighScoreFilterset']))
 
 
 def test_order_by(setup_data):

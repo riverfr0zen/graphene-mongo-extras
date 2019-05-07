@@ -7,8 +7,11 @@ from graphene_mongo_extras.filtering import filterset_factory
 
 class FilteringConnectionField(MongoengineConnectionField):
     def __init__(self, type, *args, **kwargs):
-        kwargs.setdefault('filtering',
-                          filterset_factory(type._meta.model)())
+        kwargs.setdefault(
+            'filtering',
+            filterset_factory(type._meta.model,
+                              filtering_opts=type._meta.filtering)()
+        )
         kwargs.setdefault('order_by', graphene.String())
         kwargs["get_queryset"] = self._get_queryset
         super(FilteringConnectionField, self).__init__(

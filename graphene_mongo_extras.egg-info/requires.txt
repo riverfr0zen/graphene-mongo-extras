@@ -1,2 +1,2 @@
-graphene-mongo<0.3.0,>=0.2.3
+graphene-mongo@ git+https://github.com/riverfr0zen/graphene-mongo.git@master
 graphene<3.0,>=2.1

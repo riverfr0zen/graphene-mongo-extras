@@ -1,6 +1,7 @@
 import graphene
 from graphene.types.interface import InterfaceOptions
-from graphene_mongo.types import construct_fields
+from graphene_mongo.types import construct_fields, MongoengineObjectType, \
+                                 MongoengineObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_mongo.utils import is_valid_mongoengine_model
 from graphene_mongo.registry import Registry, get_global_registry
@@ -10,10 +11,24 @@ from .filtering.fields import FilteringConnectionField
 __version__ = '0.1.0'
 
 __all__ = [
+    'MongoengineExtrasType',
     'CountableConnectionBase',
     'FilteringConnectionField',
     'MongoengineInterface'
 ]
+
+
+class MongoengineExtrasType(MongoengineObjectType):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def __init_subclass_with_meta__(cls, filtering={}, _meta=None, **kwargs):
+        if not _meta:
+            _meta = MongoengineObjectTypeOptions(cls)
+            _meta.filtering = filtering
+        super(MongoengineExtrasType, cls) \
+            .__init_subclass_with_meta__(_meta=_meta, **kwargs)
 
 
 class CountableConnectionBase(Connection):
