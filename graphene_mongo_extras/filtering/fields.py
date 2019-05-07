@@ -9,7 +9,7 @@ class FilteringConnectionField(MongoengineConnectionField):
     def __init__(self, type, *args, **kwargs):
         kwargs.setdefault(
             'filtering',
-            filterset_factory(type._meta.model,
+            filterset_factory(type,
                               filtering_opts=type._meta.filtering)()
         )
         kwargs.setdefault('order_by', graphene.String())

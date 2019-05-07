@@ -60,8 +60,17 @@ class HighScoreType(MongoengineExtrasType):
         connection_field_class = FilteringConnectionField
 
 
+class HighScoreWithOptionsType(MongoengineExtrasType):
+    class Meta:
+        model = HighScore
+        interfaces = (Node,)
+        filtering = {'depth': 3}
+        connection_field_class = FilteringConnectionField
+
+
 class Query(graphene.ObjectType):
     highscores = FilteringConnectionField(HighScoreType)
+    hs_with_options = FilteringConnectionField(HighScoreWithOptionsType)
 
 
 schema = graphene.Schema(
@@ -73,8 +82,79 @@ schema = graphene.Schema(
 
 
 def test_filterset_depth():
-    import logging
-    logging.debug(dir(FiltersRegistry._registry['HighScoreFilterset']))
+    # HighScoreType has default depth of 2
+    hs_filters = FiltersRegistry.get('HighScoreTypeFilters')
+    assert hs_filters
+
+    hs_filterset = FiltersRegistry.get('HighScoreTypeFilterset')
+    assert hs_filterset
+    assert hasattr(hs_filterset, 'filters')
+    assert hs_filterset.filters.of_type().__class__.__name__ \
+        == 'HighScoreTypeFilters'
+    assert hasattr(hs_filterset, 'filtersets')
+    assert hs_filterset.filtersets.of_type().__class__.__name__ \
+        == 'HighScoreTypeFilterset1'
+
+    # hs_filters_class = hs_filterset.filters.of_type()
+    # assert isinstance(hs_filterset.filters, hs_filters_class)
+
+    hs_filterset1 = FiltersRegistry.get('HighScoreTypeFilterset1')
+    assert hs_filterset1
+    assert hasattr(hs_filterset1, 'filters')
+    assert hs_filterset1.filters.of_type().__class__.__name__ \
+        == 'HighScoreTypeFilters'
+    assert hasattr(hs_filterset1, 'filtersets')
+    assert hs_filterset1.filtersets.of_type().__class__.__name__ \
+        == 'HighScoreTypeFilterset2'
+
+    hs_filterset2 = FiltersRegistry.get('HighScoreTypeFilterset2')
+    assert hs_filterset2
+    assert hasattr(hs_filterset2, 'filters')
+    assert hs_filterset2.filters.of_type().__class__.__name__ \
+        == 'HighScoreTypeFilters'
+    assert not hasattr(hs_filterset2, 'filtersets')
+
+    hs_filterset3 = FiltersRegistry.get('HighScoreTypeFilterset3')
+    assert not hs_filterset3
+
+    # HighScoreWithOptionsType has depth of 3
+    hso_filters = FiltersRegistry.get('HighScoreWithOptionsTypeFilters')
+    assert hso_filters
+
+    hso_filterset = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset')
+    assert hso_filterset
+    assert hasattr(hso_filterset, 'filters')
+    assert hso_filterset.filters.of_type().__class__.__name__ \
+        == 'HighScoreWithOptionsTypeFilters'
+    assert hasattr(hso_filterset, 'filtersets')
+    assert hso_filterset.filtersets.of_type().__class__.__name__ \
+        == 'HighScoreWithOptionsTypeFilterset1'
+
+    hso_filterset1 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset1')
+    assert hso_filterset1
+    assert hasattr(hso_filterset1, 'filters')
+    assert hso_filterset1.filters.of_type().__class__.__name__ \
+        == 'HighScoreWithOptionsTypeFilters'
+    assert hasattr(hso_filterset1, 'filtersets')
+    assert hso_filterset1.filtersets.of_type().__class__.__name__ \
+        == 'HighScoreWithOptionsTypeFilterset2'
+
+    hso_filterset2 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset2')
+    assert hso_filterset2
+    assert hasattr(hso_filterset1, 'filters')
+    assert hso_filterset2.filters.of_type().__class__.__name__ \
+        == 'HighScoreWithOptionsTypeFilters'
+    assert hasattr(hso_filterset2, 'filtersets')
+    assert hso_filterset2.filtersets.of_type().__class__.__name__ \
+        == 'HighScoreWithOptionsTypeFilterset3'
+
+    hso_filterset3 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset3')
+    assert hso_filterset3
+    assert hasattr(hso_filterset3, 'filters')
+    assert not hasattr(hs_filterset3, 'filtersets')
+
+    hso_filterset4 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset4')
+    assert not hso_filterset4
 
 
 def test_order_by(setup_data):

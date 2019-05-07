@@ -29,10 +29,10 @@ class FiltersetBase(graphene.InputObjectType):
     op = graphene.String(default_value="AND")
 
 
-def filters_factory(model, filtering_opts={}, as_list=False):
+def filters_factory(model, base_classname, filtering_opts={}, as_list=False):
     field_filters = {}
     graphene_mongo_registry = get_global_registry()
-    filters_classname = "{}Filters".format(model.__name__)
+    filters_classname = "{}Filters".format(base_classname)
     filters_class = FiltersRegistry.get(filters_classname)
     if filters_class is None:
         for fieldname, field in model._fields.items():
@@ -60,6 +60,7 @@ def filters_factory(model, filtering_opts={}, as_list=False):
                 # 'subqueries'
                 if isinstance(field, EmbeddedDocumentField):
                     filters = filters_factory(field.document_type,
+                                              base_classname,
                                               as_list=True)
                     filters = {"{}__{}".format(fieldname, filtr): fieldobj
                                for filtr, fieldobj in filters.items()}
@@ -74,18 +75,25 @@ def filters_factory(model, filtering_opts={}, as_list=False):
         return filters_class
 
 
-def filterset_factory(model, depth=DEFAULT_FILTERSET_DEPTH,
+def filterset_factory(gqltype, depth=None,
                       filtering_opts={}, filters_class=None,
                       filterset_class=None):
-    if 'depth' in filtering_opts:
-        depth = filtering_opts['depth']
+    model = gqltype._meta.model
+    base_filterset_classname = gqltype.__name__
+    if depth is None:
+        if 'depth' in filtering_opts:
+            depth = filtering_opts['depth']
+        else:
+            depth = DEFAULT_FILTERSET_DEPTH
 
-    # logger.debug([field for fieldname, field in model._fields.items()])
     if not filters_class:
-        filters_class = filters_factory(model)
+        filters_class = filters_factory(
+            model,
+            base_classname=base_filterset_classname
+        )
 
     depth_label = depth if depth > 0 else ''
-    new_filterset_classname = "{}Filterset{}".format(model.__name__,
+    new_filterset_classname = "{}Filterset{}".format(base_filterset_classname,
                                                      depth_label)
     filterset_attrs = {"filters": graphene.List(filters_class)}
     if filterset_class:
@@ -98,7 +106,7 @@ def filterset_factory(model, depth=DEFAULT_FILTERSET_DEPTH,
 
     if depth > 0:
         depth = depth - 1
-        return filterset_factory(model, depth=depth,
+        return filterset_factory(gqltype, depth=depth,
                                  filtering_opts=filtering_opts,
                                  filters_class=filters_class,
                                  filterset_class=new_filterset_class)
