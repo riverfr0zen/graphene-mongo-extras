@@ -78,7 +78,7 @@ def setup_data(setup_mongo):
     Game.drop_collection()
 
 
-class HighScoreType(MongoengineExtrasType):
+class HighScoreType(MongoengineObjectType):
     class Meta:
         model = HighScore
         interfaces = (Node,)
@@ -94,9 +94,19 @@ class GameType(MongoengineExtrasType):
         connection_field_class = FilteringConnectionField
 
 
+class GameType2(MongoengineExtrasType):
+    """ A type to test alternate configuration """
+    class Meta:
+        model = Game
+        interfaces = (Node,)
+        exclude_fields = ('scores', 'description',)
+        connection_field_class = FilteringConnectionField
+
+
 class Query(graphene.ObjectType):
     # games = MongoengineConnectionField(GameType)
     games = FilteringConnectionField(GameType)
+    games2 = FilteringConnectionField(GameType2)
     highscores = FilteringConnectionField(HighScoreType)
 
 
@@ -104,6 +114,7 @@ schema = graphene.Schema(
     query=Query,
     types=[
         GameType,
+        GameType2,
         HighScoreType,
     ]
 )

@@ -6,12 +6,31 @@ Better docs will come later. For now, please see the tests:
 
 Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphene-mongo-extras-examples) for a demo app and query examples.
 
-# Overview
-Provides some additional functionality on top of [graphene-mongo](https://github.com/graphql-python/graphene-mongo)
-* Filtering
-    - Filter using Mongoengine [query operators](http://docs.mongoengine.org/guide/querying.html#query-operators)
-    - Provides the correct query operators in GraphQL for each field type
-    - Nested filtering with AND/OR logic for filter sets
-    - Ordering of results
-* total count in ConnectionField graphql queries (CountableConnectionBase)
-* a way to set up interfaces (MongoengineInterface)
+# Overview / Todo-list
+
+## Filtering Field
+* [x] Filter using Mongoengine [query operators](http://docs.mongoengine.org/guide/querying.html#query-operators)
+* [x] Provide the correct query operators in GraphQL for each field type
+* [x] Nested filtering with AND/OR logic for filter sets
+* [x] Ordering of results
+* [x] Configure filtering field
+    - [x] depth
+    - [x] include/exclude fields
+* [ ] Examine compatibility with various fields
+* [ ] Support reference fields and list of reference fields
+
+## Misc:
+[x] total count in ConnectionField graphql queries (CountableConnectionBase)
+[x] a way to set up interfaces (MongoengineInterface)
+
+## Mutation support
+* [ ] MongoengineInputObjectType
+    - An InputObjectType that derives from an assigned model
+
+## Embedded fields
+[ ] A way to implement embedded fields (and lists of) without having to use connections (i.e. return as SomeEmbeddedType or List[SomeEmbeddedType])
+
+# Changelog
+
+## 0.2.0
+* MongoengineExtrasType added to support new Meta config options (in-lieu of MongoengineObjectType) 

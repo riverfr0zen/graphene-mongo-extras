@@ -8,7 +8,7 @@ from graphene_mongo.registry import Registry, get_global_registry
 from graphene.relay import Connection
 from .filtering.fields import FilteringConnectionField
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 __all__ = [
     'MongoengineExtrasType',
