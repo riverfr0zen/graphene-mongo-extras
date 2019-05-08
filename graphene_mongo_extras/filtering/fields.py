@@ -7,10 +7,18 @@ from graphene_mongo_extras.filtering import filterset_factory
 
 class FilteringConnectionField(MongoengineConnectionField):
     def __init__(self, type, *args, **kwargs):
+        filtering_opts = type._meta.filtering
+        exclude_fields = list(type._meta.exclude_fields)
+        if 'exclude' in filtering_opts:
+            filtering_opts['exclude'] = \
+                list(filtering_opts['exclude']) + exclude_fields
+        else:
+            filtering_opts['exclude'] = exclude_fields
+
         kwargs.setdefault(
             'filtering',
             filterset_factory(type,
-                              filtering_opts=type._meta.filtering)()
+                              filtering_opts=filtering_opts)()
         )
         kwargs.setdefault('order_by', graphene.String())
         kwargs["get_queryset"] = self._get_queryset

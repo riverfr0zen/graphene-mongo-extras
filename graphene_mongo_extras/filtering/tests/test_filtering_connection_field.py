@@ -5,7 +5,7 @@ from graphene.relay import Node
 from datetime import datetime
 from .. import FiltersRegistry
 from ..fields import FilteringConnectionField
-#from graphene_mongo import MongoengineObjectType
+from graphene_mongo import MongoengineObjectType, MongoengineConnectionField
 from graphene_mongo_extras import MongoengineExtrasType
 from mongoengine import Document, EmbeddedDocument
 from mongoengine.fields import (
@@ -13,6 +13,8 @@ from mongoengine.fields import (
     StringField,
     IntField,
     EmbeddedDocumentField,
+    ListField,
+    ReferenceField,
 )
 
 
@@ -28,8 +30,16 @@ class HighScore(Document):
     info = EmbeddedDocumentField(PlaythruInfo)
 
 
+class Game(Document):
+    name = StringField()
+    publisher = StringField()
+    description = StringField()
+    scores = ListField(ReferenceField(HighScore))
+
+
 @pytest.fixture
 def setup_data(setup_mongo):
+    Game.drop_collection()
     HighScore.drop_collection()
     yield [
         HighScore(player="liz", score=5, recorded=datetime(2019, 1, 1),
@@ -40,6 +50,7 @@ def setup_data(setup_mongo):
                   info=PlaythruInfo(difficulty="medium", continues=1)).save(),
         HighScore(player="jim", score=7, recorded=datetime(2019, 1, 3),
                   info=PlaythruInfo(difficulty="medium", continues=0)).save(),
+
         HighScore(player="zin", score=8, recorded=datetime(2019, 1, 3),
                   info=PlaythruInfo(difficulty="hard", continues=2)).save(),
         HighScore(player="jen", score=10, recorded=datetime(2019, 1, 3),
@@ -48,9 +59,23 @@ def setup_data(setup_mongo):
                   info=PlaythruInfo(difficulty="hard", continues=1)).save(),
         HighScore(player="sam", score=1, recorded=datetime(2019, 1, 5),
                   info=PlaythruInfo(difficulty="medium", continues=1)).save(),
+
+        Game(name='Space Invaders', publisher='Taito',
+             scores=[
+                HighScore.objects.get(player='liz'),
+                HighScore.objects.get(player='bob'),
+                HighScore.objects.get(player='boo'),
+                HighScore.objects.get(player='jim'), ]).save(),
+        Game(name='Space Invaders 2', publisher='Taito',
+             scores=[
+                HighScore.objects.get(player='zin'),
+                HighScore.objects.get(player='jen'),
+                HighScore.objects.get(player='dav'),
+                HighScore.objects.get(player='sam'), ]).save(),
     ]
     # Teardown
     HighScore.drop_collection()
+    Game.drop_collection()
 
 
 class HighScoreType(MongoengineExtrasType):
@@ -60,25 +85,36 @@ class HighScoreType(MongoengineExtrasType):
         connection_field_class = FilteringConnectionField
 
 
-class HighScoreWithOptionsType(MongoengineExtrasType):
+class GameType(MongoengineExtrasType):
     class Meta:
-        model = HighScore
+        model = Game
         interfaces = (Node,)
-        filtering = {'depth': 3}
+        exclude_fields = ('description',)
+        filtering = {'depth': 3, 'exclude': ['scores']}
         connection_field_class = FilteringConnectionField
 
 
 class Query(graphene.ObjectType):
+    # games = MongoengineConnectionField(GameType)
+    games = FilteringConnectionField(GameType)
     highscores = FilteringConnectionField(HighScoreType)
-    hs_with_options = FilteringConnectionField(HighScoreWithOptionsType)
 
 
 schema = graphene.Schema(
     query=Query,
     types=[
+        GameType,
         HighScoreType,
     ]
 )
+
+
+def test_excluded_fields():
+    gam_filters = FiltersRegistry.get('GameTypeFilters')
+    for key, field in gam_filters._meta.fields.items():
+        # assert 'name__' not in key
+        assert 'scores__' not in key
+        assert 'description' not in key
 
 
 def test_filterset_depth():
@@ -94,9 +130,6 @@ def test_filterset_depth():
     assert hasattr(hs_filterset, 'filtersets')
     assert hs_filterset.filtersets.of_type().__class__.__name__ \
         == 'HighScoreTypeFilterset1'
-
-    # hs_filters_class = hs_filterset.filters.of_type()
-    # assert isinstance(hs_filterset.filters, hs_filters_class)
 
     hs_filterset1 = FiltersRegistry.get('HighScoreTypeFilterset1')
     assert hs_filterset1
@@ -117,44 +150,44 @@ def test_filterset_depth():
     hs_filterset3 = FiltersRegistry.get('HighScoreTypeFilterset3')
     assert not hs_filterset3
 
-    # HighScoreWithOptionsType has depth of 3
-    hso_filters = FiltersRegistry.get('HighScoreWithOptionsTypeFilters')
-    assert hso_filters
+    # GameType has depth of 3
+    gam_filters = FiltersRegistry.get('GameTypeFilters')
+    assert gam_filters
 
-    hso_filterset = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset')
-    assert hso_filterset
-    assert hasattr(hso_filterset, 'filters')
-    assert hso_filterset.filters.of_type().__class__.__name__ \
-        == 'HighScoreWithOptionsTypeFilters'
-    assert hasattr(hso_filterset, 'filtersets')
-    assert hso_filterset.filtersets.of_type().__class__.__name__ \
-        == 'HighScoreWithOptionsTypeFilterset1'
+    gam_filterset = FiltersRegistry.get('GameTypeFilterset')
+    assert gam_filterset
+    assert hasattr(gam_filterset, 'filters')
+    assert gam_filterset.filters.of_type().__class__.__name__ \
+        == 'GameTypeFilters'
+    assert hasattr(gam_filterset, 'filtersets')
+    assert gam_filterset.filtersets.of_type().__class__.__name__ \
+        == 'GameTypeFilterset1'
 
-    hso_filterset1 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset1')
-    assert hso_filterset1
-    assert hasattr(hso_filterset1, 'filters')
-    assert hso_filterset1.filters.of_type().__class__.__name__ \
-        == 'HighScoreWithOptionsTypeFilters'
-    assert hasattr(hso_filterset1, 'filtersets')
-    assert hso_filterset1.filtersets.of_type().__class__.__name__ \
-        == 'HighScoreWithOptionsTypeFilterset2'
+    gam_filterset1 = FiltersRegistry.get('GameTypeFilterset1')
+    assert gam_filterset1
+    assert hasattr(gam_filterset1, 'filters')
+    assert gam_filterset1.filters.of_type().__class__.__name__ \
+        == 'GameTypeFilters'
+    assert hasattr(gam_filterset1, 'filtersets')
+    assert gam_filterset1.filtersets.of_type().__class__.__name__ \
+        == 'GameTypeFilterset2'
 
-    hso_filterset2 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset2')
-    assert hso_filterset2
-    assert hasattr(hso_filterset1, 'filters')
-    assert hso_filterset2.filters.of_type().__class__.__name__ \
-        == 'HighScoreWithOptionsTypeFilters'
-    assert hasattr(hso_filterset2, 'filtersets')
-    assert hso_filterset2.filtersets.of_type().__class__.__name__ \
-        == 'HighScoreWithOptionsTypeFilterset3'
+    gam_filterset2 = FiltersRegistry.get('GameTypeFilterset2')
+    assert gam_filterset2
+    assert hasattr(gam_filterset1, 'filters')
+    assert gam_filterset2.filters.of_type().__class__.__name__ \
+        == 'GameTypeFilters'
+    assert hasattr(gam_filterset2, 'filtersets')
+    assert gam_filterset2.filtersets.of_type().__class__.__name__ \
+        == 'GameTypeFilterset3'
 
-    hso_filterset3 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset3')
-    assert hso_filterset3
-    assert hasattr(hso_filterset3, 'filters')
+    gam_filterset3 = FiltersRegistry.get('GameTypeFilterset3')
+    assert gam_filterset3
+    assert hasattr(gam_filterset3, 'filters')
     assert not hasattr(hs_filterset3, 'filtersets')
 
-    hso_filterset4 = FiltersRegistry.get('HighScoreWithOptionsTypeFilterset4')
-    assert not hso_filterset4
+    gam_filterset4 = FiltersRegistry.get('GameTypeFilterset4')
+    assert not gam_filterset4
 
 
 def test_order_by(setup_data):

@@ -36,8 +36,11 @@ def filters_factory(model, base_classname, filtering_opts={}, as_list=False):
     filters_class = FiltersRegistry.get(filters_classname)
     if filters_class is None:
         for fieldname, field in model._fields.items():
+            if 'exclude' in filtering_opts and \
+                    fieldname in filtering_opts['exclude']:
+                continue
+
             lookups = COMPARISON_OPERATORS
-            # logger.debug(field.__class__)
             if field.__class__ is StringField:
                 lookups = lookups + STRING_OPERATORS
             lookups = filter(lambda l: l not in UNSUPPORTED_LOOKUPS,
@@ -72,7 +75,7 @@ def filters_factory(model, base_classname, filtering_opts={}, as_list=False):
                              (graphene.InputObjectType,),
                              field_filters)
         FiltersRegistry.register(filters_class)
-        return filters_class
+    return filters_class
 
 
 def filterset_factory(gqltype, depth=None,
@@ -89,26 +92,29 @@ def filterset_factory(gqltype, depth=None,
     if not filters_class:
         filters_class = filters_factory(
             model,
-            base_classname=base_filterset_classname
+            base_classname=base_filterset_classname,
+            filtering_opts=filtering_opts,
         )
 
     depth_label = depth if depth > 0 else ''
     new_filterset_classname = "{}Filterset{}".format(base_filterset_classname,
                                                      depth_label)
-    filterset_attrs = {"filters": graphene.List(filters_class)}
-    if filterset_class:
-        filterset_attrs["filtersets"] = graphene.List(filterset_class)
+    new_filterset_class = FiltersRegistry.get(new_filterset_classname)
+    if not new_filterset_class:
+        filterset_attrs = {"filters": graphene.List(filters_class)}
+        if filterset_class:
+            filterset_attrs["filtersets"] = graphene.List(filterset_class)
 
-    new_filterset_class = type(new_filterset_classname,
-                               (FiltersetBase,),
-                               filterset_attrs)
-    FiltersRegistry.register(new_filterset_class)
+        new_filterset_class = type(new_filterset_classname,
+                                   (FiltersetBase,),
+                                   filterset_attrs)
+        FiltersRegistry.register(new_filterset_class)
 
-    if depth > 0:
-        depth = depth - 1
-        return filterset_factory(gqltype, depth=depth,
-                                 filtering_opts=filtering_opts,
-                                 filters_class=filters_class,
-                                 filterset_class=new_filterset_class)
-    # logger.debug(FiltersRegistry._registry.keys())
+        if depth > 0:
+            depth = depth - 1
+            return filterset_factory(gqltype, depth=depth,
+                                     filtering_opts=filtering_opts,
+                                     filters_class=filters_class,
+                                     filterset_class=new_filterset_class)
+        # logger.debug(FiltersRegistry._registry.keys())
     return new_filterset_class
