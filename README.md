@@ -21,17 +21,23 @@ Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphe
 * [ ] Support reference fields and list of reference fields
 
 ## Misc:
-[x] total count in ConnectionField graphql queries (CountableConnectionBase)
-[x] a way to set up interfaces (MongoengineInterface)
+* [x] total count in ConnectionField graphql queries (CountableConnectionBase)
+* [x] a way to set up interfaces (MongoengineInterface)
 
 ## Mutation support
 * [ ] MongoengineInputObjectType
     - An InputObjectType that derives from an assigned model
 
 ## Embedded fields
-[ ] A way to implement embedded fields (and lists of) without having to use connections (i.e. return as SomeEmbeddedType or List[SomeEmbeddedType])
+* [ ] A way to implement embedded fields (and lists of) without having to use connections (i.e. return as SomeEmbeddedType or List[SomeEmbeddedType])
 
 # Changelog
 
 ## 0.2.0
 * MongoengineExtrasType added to support new Meta config options (in-lieu of MongoengineObjectType) 
+* Filtering
+    - Depth and excluded fields can now be configured
+
+
+## 0.1.0
+* Initial
