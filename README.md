@@ -15,7 +15,8 @@ Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphe
 * [x] Ordering of results
 * [x] Configure filtering field
     - [x] depth
-    - [x] include/exclude fields
+    - [x] exclude fields
+    - [ ] include fields
 * [ ] Examine compatibility with various fields
 * [ ] Support reference fields and list of reference fields
 
