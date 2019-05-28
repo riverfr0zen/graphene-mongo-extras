@@ -17,6 +17,7 @@ See the `examples` folder for a demo app and query examples.
     - [x] depth
     - [x] exclude fields
     - [ ] include fields
+* [x] Support list of embedded fields
 * [ ] Examine compatibility with various fields
 * [ ] Support reference fields and list of reference fields
 
