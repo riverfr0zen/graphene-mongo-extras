@@ -1,0 +1,4 @@
+Flask==1.0.2
+Flask-GraphQL==2.0.0
+mongomock==3.16.0
+git+https://github.com/riverfr0zen/graphene-mongo-extras.git#egg=graphene_mongo_extras

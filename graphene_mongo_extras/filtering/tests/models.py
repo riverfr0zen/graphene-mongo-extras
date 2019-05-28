@@ -1,0 +1,32 @@
+from mongoengine import Document, EmbeddedDocument
+from mongoengine.fields import (
+    DateTimeField,
+    StringField,
+    IntField,
+    EmbeddedDocumentField,
+    EmbeddedDocumentListField,
+    ListField,
+    ReferenceField,
+)
+
+
+class PlaythruInfo(EmbeddedDocument):
+    difficulty = StringField()
+    continues = IntField()
+
+
+class HighScore(Document):
+    player = StringField()
+    score = IntField()
+    recorded = DateTimeField()
+    info = EmbeddedDocumentField(PlaythruInfo)
+    cheats = ListField(StringField(), choices=('99 lives', 'No damage',))
+
+
+class Game(Document):
+    name = StringField()
+    publisher = StringField()
+    description = StringField()
+    scores = ListField(ReferenceField(HighScore))
+    options = EmbeddedDocumentListField(PlaythruInfo)
+    alt_options = ListField(EmbeddedDocumentField(PlaythruInfo))

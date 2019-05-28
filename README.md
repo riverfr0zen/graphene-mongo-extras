@@ -33,6 +33,10 @@ Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphe
 
 # Changelog
 
+## 0.3.0
+* Filtering 
+    - List of EmbeddedDocumentFields now supported [issue](https://github.com/riverfr0zen/graphene-mongo-extras/issues/1)
+
 ## 0.2.0
 * MongoengineExtrasType added to support new Meta config options (in-lieu of MongoengineObjectType) 
 * Filtering

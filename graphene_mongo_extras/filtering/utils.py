@@ -1,17 +1,17 @@
-from graphene import List, Boolean, Int
+import graphene
 
 
 def convert_for_lookup(field, lookup):
-    if lookup in ['in', 'nin', 'all'] and field.__class__ is not List:
-        return List(field.__class__)
+    if lookup in ['in', 'nin', 'all'] and field.__class__ is not graphene.List:
+        return graphene.List(field.__class__)
 
     if lookup == 'exists':
-        return Boolean()
+        return graphene.Boolean()
 
     if lookup == 'mod':
-        return List(Int)
+        return graphene.List(graphene.Int)
 
     if lookup == 'size':
-        return Int()
+        return graphene.Int()
 
     return field

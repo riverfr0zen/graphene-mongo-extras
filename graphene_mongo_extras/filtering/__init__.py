@@ -29,6 +29,15 @@ class FiltersetBase(graphene.InputObjectType):
     op = graphene.String(default_value="AND")
 
 
+def _is_embedded_list(field):
+    if hasattr(field, 'field') and isinstance(
+        field.field,
+        EmbeddedDocumentField
+    ):
+        return True
+    return False
+
+
 def filters_factory(model, base_classname, filtering_opts={}, as_list=False):
     field_filters = {}
     graphene_mongo_registry = get_global_registry()
@@ -45,30 +54,42 @@ def filters_factory(model, base_classname, filtering_opts={}, as_list=False):
                 lookups = lookups + STRING_OPERATORS
             lookups = filter(lambda l: l not in UNSUPPORTED_LOOKUPS,
                              lookups)
-            converted_field = convert_mongoengine_field(
-                field,
-                graphene_mongo_registry
-            )
-            if not isinstance(converted_field, graphene.Dynamic):
-                filters = [{
-                    "{}__{}".format(fieldname, lookup):
-                        convert_for_lookup(converted_field, lookup)
-                } for lookup in lookups]
-                field_filters.update(dict(ChainMap(*filters)))
+
+            if _is_embedded_list(field):
+                filters = filters_factory(field.field.document_type,
+                                          base_classname,
+                                          as_list=True)
+                filters = {"{}__{}".format(fieldname, filtr): fieldobj
+                           for filtr, fieldobj in filters.items()}
+                field_filters.update(filters)
             else:
-                # @TODO
-                # Currently only embedded fields supported, maybe
-                # in the future we can support reference fields if we
-                # provide additional filtering logic in fields.py to handle
-                # 'subqueries'
-                if isinstance(field, EmbeddedDocumentField):
-                    filters = filters_factory(field.document_type,
-                                              base_classname,
-                                              as_list=True)
-                    filters = {"{}__{}".format(fieldname, filtr): fieldobj
-                               for filtr, fieldobj in filters.items()}
-                    field_filters.update(filters)
-                    # logger.debug(filters.keys())
+                # @TODO: Review which cases using convert_mongoengine_field
+                # may not be the most direct/efficient option (e.g. see the
+                # "if" clause above)
+                converted_field = convert_mongoengine_field(
+                    field,
+                    graphene_mongo_registry
+                )
+                if isinstance(converted_field, graphene.Dynamic):
+                    # @TODO
+                    # Currently only embedded fields supported, maybe
+                    # in the future we can support reference fields if we
+                    # provide additional filtering logic in fields.py to handle
+                    # 'subqueries'
+                    if isinstance(field, EmbeddedDocumentField):
+                        filters = filters_factory(field.document_type,
+                                                  base_classname,
+                                                  as_list=True)
+                        filters = {"{}__{}".format(fieldname, filtr): fieldobj
+                                   for filtr, fieldobj in filters.items()}
+                        field_filters.update(filters)
+                else:
+                    filters = [{
+                        "{}__{}".format(fieldname, lookup):
+                            convert_for_lookup(converted_field, lookup)
+                    } for lookup in lookups]
+                    field_filters.update(dict(ChainMap(*filters)))
+
         if as_list:
             return field_filters
         filters_class = type(filters_classname,

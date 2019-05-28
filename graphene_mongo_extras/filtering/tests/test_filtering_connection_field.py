@@ -1,40 +1,12 @@
 import pytest
 import graphene
 from graphql_relay.node.node import to_global_id
-from graphene.relay import Node
 from datetime import datetime
 from .. import FiltersRegistry
 from ..fields import FilteringConnectionField
-from graphene_mongo import MongoengineObjectType, MongoengineConnectionField
-from graphene_mongo_extras import MongoengineExtrasType
-from mongoengine import Document, EmbeddedDocument
-from mongoengine.fields import (
-    DateTimeField,
-    StringField,
-    IntField,
-    EmbeddedDocumentField,
-    ListField,
-    ReferenceField,
-)
-
-
-class PlaythruInfo(EmbeddedDocument):
-    difficulty = StringField()
-    continues = IntField()
-
-
-class HighScore(Document):
-    player = StringField()
-    score = IntField()
-    recorded = DateTimeField()
-    info = EmbeddedDocumentField(PlaythruInfo)
-
-
-class Game(Document):
-    name = StringField()
-    publisher = StringField()
-    description = StringField()
-    scores = ListField(ReferenceField(HighScore))
+from .models import Game, HighScore, PlaythruInfo
+# from .types import HighScoreType, GameType, GameType2, PlaythruInfoType
+from .types import HighScoreType, GameType, GameType2
 
 
 @pytest.fixture
@@ -45,6 +17,7 @@ def setup_data(setup_mongo):
         HighScore(player="liz", score=5, recorded=datetime(2019, 1, 1),
                   info=PlaythruInfo(difficulty="easy", continues=2)).save(),
         HighScore(player="bob", score=1, recorded=datetime(2019, 1, 1),
+                  cheats=['No damage'],
                   info=PlaythruInfo(difficulty="easy", continues=3)).save(),
         HighScore(player="boo", score=5, recorded=datetime(2019, 1, 2),
                   info=PlaythruInfo(difficulty="medium", continues=1)).save(),
@@ -52,12 +25,14 @@ def setup_data(setup_mongo):
                   info=PlaythruInfo(difficulty="medium", continues=0)).save(),
 
         HighScore(player="zin", score=8, recorded=datetime(2019, 1, 3),
+                  cheats=['99 lives'],
                   info=PlaythruInfo(difficulty="hard", continues=2)).save(),
         HighScore(player="jen", score=10, recorded=datetime(2019, 1, 3),
                   info=PlaythruInfo(difficulty="hard", continues=0)).save(),
         HighScore(player="dav", score=10, recorded=datetime(2019, 1, 5),
                   info=PlaythruInfo(difficulty="hard", continues=1)).save(),
         HighScore(player="sam", score=1, recorded=datetime(2019, 1, 5),
+                  cheats=['No damage', '99 lives'],
                   info=PlaythruInfo(difficulty="medium", continues=1)).save(),
 
         Game(name='Space Invaders', publisher='Taito',
@@ -65,42 +40,34 @@ def setup_data(setup_mongo):
                 HighScore.objects.get(player='liz'),
                 HighScore.objects.get(player='bob'),
                 HighScore.objects.get(player='boo'),
-                HighScore.objects.get(player='jim'), ]).save(),
+                HighScore.objects.get(player='jim'),
+             ],
+             options=[
+                PlaythruInfo(difficulty="very easy", continues=100),
+                PlaythruInfo(difficulty="easy", continues=30),
+                PlaythruInfo(difficulty="normal", continues=10),
+                PlaythruInfo(difficulty="hard", continues=5),
+                PlaythruInfo(difficulty="pain", continues=0),
+             ]).save(),
         Game(name='Space Invaders 2', publisher='Taito',
              scores=[
                 HighScore.objects.get(player='zin'),
                 HighScore.objects.get(player='jen'),
                 HighScore.objects.get(player='dav'),
-                HighScore.objects.get(player='sam'), ]).save(),
+                HighScore.objects.get(player='sam'),
+             ],
+             options=[
+                PlaythruInfo(difficulty="relaxed", continues=50),
+                PlaythruInfo(difficulty="intense", continues=1),
+             ],
+             alt_options=[
+                PlaythruInfo(difficulty="why bother", continues=999),
+                PlaythruInfo(difficulty="mystery", continues=5),
+             ]).save(),
     ]
     # Teardown
     HighScore.drop_collection()
     Game.drop_collection()
-
-
-class HighScoreType(MongoengineObjectType):
-    class Meta:
-        model = HighScore
-        interfaces = (Node,)
-        connection_field_class = FilteringConnectionField
-
-
-class GameType(MongoengineExtrasType):
-    class Meta:
-        model = Game
-        interfaces = (Node,)
-        exclude_fields = ('description',)
-        filtering = {'depth': 3, 'exclude': ['scores']}
-        connection_field_class = FilteringConnectionField
-
-
-class GameType2(MongoengineExtrasType):
-    """ A type to test alternate configuration """
-    class Meta:
-        model = Game
-        interfaces = (Node,)
-        exclude_fields = ('scores', 'description',)
-        connection_field_class = FilteringConnectionField
 
 
 class Query(graphene.ObjectType):
@@ -116,6 +83,7 @@ schema = graphene.Schema(
         GameType,
         GameType2,
         HighScoreType,
+        # PlaythruInfoType
     ]
 )
 
@@ -442,7 +410,68 @@ def test_filtering_embedded_fields(setup_data):
     assert objs[0].player == "jen"
 
 
-# @TODO moved from test_custom_graphql
+def test_filtering_list_of_embedded_fields(setup_data):
+    filtering_opt = {
+          "op": "AND",
+          "filters": [
+              {"options__difficulty__ne": "easy"}
+          ]
+    }
+    field = FilteringConnectionField(GameType)
+    connection = field.default_resolver(None,
+                                        {},
+                                        filtering=filtering_opt)
+    objs = connection.iterable
+    assert objs.count() == 1
+    assert objs[0].name == "Space Invaders 2"
+
+    filtering_opt = {
+          "op": "AND",
+          "filters": [
+              {"options__difficulty__in": ["easy", "hard"]}
+          ]
+    }
+    field = FilteringConnectionField(GameType)
+    connection = field.default_resolver(None,
+                                        {},
+                                        filtering=filtering_opt)
+    objs = connection.iterable.order_by("name")
+    assert objs.count() == 1
+    assert objs[0].name == "Space Invaders"
+
+    filtering_opt = {
+          "op": "OR",
+          "filters": [
+              {"options__difficulty__in": ["easy"]},
+              {"options__continues__gt": 40}
+          ]
+    }
+    field = FilteringConnectionField(GameType)
+    connection = field.default_resolver(None,
+                                        {},
+                                        filtering=filtering_opt)
+    objs = connection.iterable.order_by("name")
+    assert objs.count() == 2
+    assert objs[0].name == "Space Invaders"
+    assert objs[1].name == "Space Invaders 2"
+
+    filtering_opt = {
+          "op": "OR",
+          "filters": [
+              {"options__difficulty__in": ["easy"]},
+              {"alt_options__difficulty__in": ["mystery"]}
+          ]
+    }
+    field = FilteringConnectionField(GameType)
+    connection = field.default_resolver(None,
+                                        {},
+                                        filtering=filtering_opt)
+    objs = connection.iterable.order_by("name")
+    assert objs.count() == 2
+    assert objs[0].name == "Space Invaders"
+    assert objs[1].name == "Space Invaders 2"
+
+
 def test_filtering_connection_field_ordering(setup_data):
     client = graphene.test.Client(schema)
     res = client.execute('''{
