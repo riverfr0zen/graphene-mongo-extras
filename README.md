@@ -4,7 +4,7 @@ Better docs will come later. For now, please see the tests:
 * [filtering tests](graphene_mongo_extras/filtering/tests)
 * [other tests](graphene_mongo_extras/tests)
 
-Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphene-mongo-extras-examples) for a demo app and query examples.
+See the `examples` folder for a demo app and query examples.
 
 # Overview / Todo-list
 
@@ -36,6 +36,7 @@ Check out [graphene-mongo-extras-examples](https://github.com/riverfr0zen/graphe
 ## 0.3.0
 * Filtering 
     - List of EmbeddedDocumentFields now supported [issue](https://github.com/riverfr0zen/graphene-mongo-extras/issues/1)
+* Moved examples from separate repo into `examples` folder in this repo
 
 ## 0.2.0
 * MongoengineExtrasType added to support new Meta config options (in-lieu of MongoengineObjectType) 
