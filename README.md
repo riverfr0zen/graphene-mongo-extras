@@ -34,6 +34,10 @@ See the `examples` folder for a demo app and query examples.
 
 # Changelog
 
+## 0.4.0
+* Filtering
+    - Fixed required fields generating required filters ([issue 2](https://github.com/riverfr0zen/graphene-mongo-extras/issues/2))
+
 ## 0.3.0
 * Filtering 
     - List of EmbeddedDocumentFields now supported [issue](https://github.com/riverfr0zen/graphene-mongo-extras/issues/1)
