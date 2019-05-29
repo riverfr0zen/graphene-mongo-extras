@@ -55,6 +55,7 @@ HighScore(player="sam", score=1, recorded=datetime(2019, 1, 5),
           info=PlaythruInfo(difficulty="medium", continues=1)).save(),
 
 Game(name='Space Invaders', publisher='Taito',
+     desc="The original",
      scores=[
         HighScore.objects.get(player='liz'),
         HighScore.objects.get(player='bob'),

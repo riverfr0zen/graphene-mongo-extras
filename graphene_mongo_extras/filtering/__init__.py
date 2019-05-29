@@ -1,4 +1,5 @@
 import graphene
+from copy import copy
 from graphene_mongo.converter import convert_mongoengine_field
 from graphene_mongo.registry import get_global_registry
 from collections import ChainMap
@@ -44,7 +45,9 @@ def filters_factory(model, base_classname, filtering_opts={}, as_list=False):
     filters_classname = "{}Filters".format(base_classname)
     filters_class = FiltersRegistry.get(filters_classname)
     if filters_class is None:
-        for fieldname, field in model._fields.items():
+        for fieldname, orig_field in model._fields.items():
+            field = copy(orig_field)
+            field.required = False
             if 'exclude' in filtering_opts and \
                     fieldname in filtering_opts['exclude']:
                 continue

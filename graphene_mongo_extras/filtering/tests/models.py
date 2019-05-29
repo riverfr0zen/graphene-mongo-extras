@@ -24,9 +24,9 @@ class HighScore(Document):
 
 
 class Game(Document):
-    name = StringField()
+    name = StringField(required=True)
     publisher = StringField()
-    description = StringField()
+    desc = StringField(default="No description provided")
     scores = ListField(ReferenceField(HighScore))
     options = EmbeddedDocumentListField(PlaythruInfo)
     alt_options = ListField(EmbeddedDocumentField(PlaythruInfo))

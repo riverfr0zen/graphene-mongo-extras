@@ -36,6 +36,7 @@ def setup_data(setup_mongo):
                   info=PlaythruInfo(difficulty="medium", continues=1)).save(),
 
         Game(name='Space Invaders', publisher='Taito',
+             desc="The original",
              scores=[
                 HighScore.objects.get(player='liz'),
                 HighScore.objects.get(player='bob'),
@@ -470,6 +471,43 @@ def test_filtering_list_of_embedded_fields(setup_data):
     assert objs.count() == 2
     assert objs[0].name == "Space Invaders"
     assert objs[1].name == "Space Invaders 2"
+
+
+def test_required_fields_dont_generate_required_filters(setup_data):
+    client = graphene.test.Client(schema)
+    res = client.execute('''{
+        games (filtering: {
+            filters: [
+                {name_Iendswith: "ers 2"}
+            ]
+        }) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }''')
+    assert 'errors' not in res
+    assert len(res['data']['games']) == 1
+    games = res['data']['games']['edges']
+    assert games[0]['node']['name'] == 'Space Invaders 2'
+
+    # Check that required field remains required in Type
+    client = graphene.test.Client(schema)
+    res = client.execute('''{
+        __type(name: "GameType") {
+            fields {
+                name
+                type {
+                    kind
+                }
+            }
+        }
+    }''')
+    field_specs = res['data']['__type']['fields']
+    name_spec = list(filter(lambda x: x['name'] == 'name', field_specs))[0]
+    assert name_spec['type']['kind'] == "NON_NULL"
 
 
 def test_filtering_connection_field_ordering(setup_data):
