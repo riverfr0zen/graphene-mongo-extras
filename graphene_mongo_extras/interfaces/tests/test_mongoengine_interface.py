@@ -1,31 +1,34 @@
 import pytest
 import graphene
-from mongoengine import Document, fields
 from graphene.test import Client
 from graphene_mongo import MongoengineObjectType, MongoengineConnectionField
 from graphene_mongo_extras import MongoengineInterface
 from graphene.relay import Node, Connection
-from bson import ObjectId
+from graphene_mongo_extras.interfaces.tests.models import Toy, Packaging, \
+                                                          Plushie, Videogame
 
 
-class Packaging(Document):
-    name = fields.StringField()
+@pytest.fixture
+def cleanup():
+    yield
+    Toy.drop_collection()
+    Packaging.drop_collection()
 
 
-class Toy(Document):
-    meta = {'allow_inheritance': True}
-
-    id = fields.ObjectIdField(primary_key=True, default=ObjectId)
-    name = fields.StringField()
-    packaging = fields.ReferenceField(Packaging)
-
-
-class Plushie(Toy):
-    animal = fields.StringField()
-
-
-class Videogame(Toy):
-    genre = fields.StringField()
+@pytest.fixture
+def setup_data():
+    fifipak = Packaging(name="FifiPak").save()
+    Plushie(name="fifi", animal="dog",
+            packaging=fifipak).save()
+    kittypak = Packaging(name="KittyPak").save()
+    Plushie(name="kitty", animal="cat",
+            packaging=kittypak).save()
+    contrapak = Packaging(name="ContraPak").save()
+    Videogame(name="Contra", genre="shmup",
+              packaging=contrapak).save()
+    dspak = Packaging(name="DSPak").save()
+    Videogame(name="Dark Souls", genre="masochism",
+              packaging=dspak).save()
 
 
 class ToyInterface(MongoengineInterface):
@@ -72,26 +75,7 @@ schema = graphene.Schema(
 )
 
 
-@pytest.fixture
-def cleanup():
-    yield
-    Toy.drop_collection()
-    Packaging.drop_collection()
-
-
-def test_mongoengine_interface(setup_mongo, cleanup):
-    fifipak = Packaging(name="FifiPak").save()
-    Plushie(name="fifi", animal="dog",
-            packaging=fifipak).save()
-    kittypak = Packaging(name="KittyPak").save()
-    Plushie(name="kitty", animal="cat",
-            packaging=kittypak).save()
-    contrapak = Packaging(name="ContraPak").save()
-    Videogame(name="Contra", genre="shmup",
-              packaging=contrapak).save()
-    dspak = Packaging(name="DSPak").save()
-    Videogame(name="Dark Souls", genre="masochism",
-              packaging=dspak).save()
+def test_mongoengine_interface(setup_data, cleanup):
 
     client = Client(schema)
     res = client.execute('''{
