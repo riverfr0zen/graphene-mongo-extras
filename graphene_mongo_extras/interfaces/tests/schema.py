@@ -22,8 +22,8 @@ class PackagingType(MongoengineObjectType):
 class PlushieType(MongoengineObjectType):
     class Meta:
         model = Plushie
-        interfaces = (Node, ToyInterface,)
-        # interfaces = (ToyInterface,)
+        # interfaces = (Node, ToyInterface,)
+        interfaces = (ToyInterface,)
         connection_class = Connection
         connection_field_class = MongoengineConnectionField
 
@@ -31,8 +31,8 @@ class PlushieType(MongoengineObjectType):
 class VideogameType(MongoengineObjectType):
     class Meta:
         model = Videogame
-        interfaces = (Node, ToyInterface,)
-        # interfaces = (ToyInterface,)
+        # interfaces = (Node, ToyInterface,)
+        interfaces = (ToyInterface,)
         connection_class = Connection
         connection_field_class = MongoengineConnectionField
 
