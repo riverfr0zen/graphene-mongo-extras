@@ -6,11 +6,6 @@ from graphene_mongo_extras.interfaces.tests.models import Toy, Packaging, \
                                                           Plushie, Videogame
 
 
-class ToyInterface(MongoengineInterface):
-    class Meta:
-        model = Toy
-
-
 class PackagingType(MongoengineObjectType):
     class Meta:
         model = Packaging
@@ -19,10 +14,14 @@ class PackagingType(MongoengineObjectType):
         connection_field_class = MongoengineConnectionField
 
 
+class ToyInterface(MongoengineInterface):
+    class Meta:
+        model = Toy
+
+
 class PlushieType(MongoengineObjectType):
     class Meta:
         model = Plushie
-        # interfaces = (Node, ToyInterface,)
         interfaces = (ToyInterface,)
         connection_class = Connection
         connection_field_class = MongoengineConnectionField
@@ -31,14 +30,52 @@ class PlushieType(MongoengineObjectType):
 class VideogameType(MongoengineObjectType):
     class Meta:
         model = Videogame
-        # interfaces = (Node, ToyInterface,)
         interfaces = (ToyInterface,)
         connection_class = Connection
         connection_field_class = MongoengineConnectionField
 
 
+class PlushieNodeType(MongoengineObjectType):
+    class Meta:
+        model = Plushie
+        interfaces = (Node,)
+        connection_class = Connection
+        connection_field_class = MongoengineConnectionField
+
+
+class VideogameNodeType(MongoengineObjectType):
+    class Meta:
+        model = Videogame
+        interfaces = (Node,)
+        connection_class = Connection
+        connection_field_class = MongoengineConnectionField
+
+
+class ToyUnion(graphene.Union):
+    class Meta:
+        types = (PlushieNodeType, VideogameNodeType)
+
+
+class ToyUnionConnection(graphene.Connection):
+    class Meta:
+        node = ToyUnion
+
+
+class ToyInterfaceConnection(graphene.Connection):
+    class Meta:
+        node = ToyInterface
+
+
 class Query(graphene.ObjectType):
     toys = graphene.List(ToyInterface)
+    all_toys_iface = graphene.ConnectionField(ToyInterfaceConnection)
+    all_toys_union = graphene.ConnectionField(ToyUnionConnection)
+
+    def resolve_all_toys_iface(self, info, **kwargs):
+        return list(Toy.objects.all())
+
+    def resolve_all_toys_union(self, info, **kwargs):
+        return list(Toy.objects.all())
 
     def resolve_toys(self, info):
         return list(Toy.objects.all())
@@ -46,5 +83,6 @@ class Query(graphene.ObjectType):
 
 schema = graphene.Schema(
     query=Query,
-    types=[PackagingType, PlushieType, VideogameType]
+    types=[PackagingType, PlushieType, VideogameType,
+           PlushieNodeType, VideogameNodeType]
 )

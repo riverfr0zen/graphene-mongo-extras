@@ -31,7 +31,7 @@ class MongoengineInterface(graphene.Interface):
             'Model. Received "{}" instead.'
         ).format(cls.__name__, type(model))
 
-        # Not using adding to registry, since it only supports
+        # Not adding to registry, since it only supports
         # MongoengineObjectType. Only using registry because required
         # by construct_fields
         if not registry:
