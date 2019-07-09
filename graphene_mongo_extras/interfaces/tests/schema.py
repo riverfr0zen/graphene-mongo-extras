@@ -51,14 +51,15 @@ class VideogameNodeType(MongoengineObjectType):
         connection_field_class = MongoengineConnectionField
 
 
-class ToyUnion(graphene.Union):
-    class Meta:
-        types = (PlushieNodeType, VideogameNodeType)
+# @TODO unions
+# class ToyUnion(graphene.Union):
+#     class Meta:
+#         types = (PlushieNodeType, VideogameNodeType)
 
 
-class ToyUnionConnection(graphene.Connection):
-    class Meta:
-        node = ToyUnion
+# class ToyUnionConnection(graphene.Connection):
+#     class Meta:
+#         node = ToyUnion
 
 
 class ToyInterfaceConnection(graphene.Connection):
@@ -68,17 +69,20 @@ class ToyInterfaceConnection(graphene.Connection):
 
 class Query(graphene.ObjectType):
     toys = graphene.List(ToyInterface)
+
+    def resolve_toys(self, info):
+        return list(Toy.objects.all())
+
     all_toys_iface = graphene.ConnectionField(ToyInterfaceConnection)
-    all_toys_union = graphene.ConnectionField(ToyUnionConnection)
 
     def resolve_all_toys_iface(self, info, **kwargs):
         return list(Toy.objects.all())
 
-    def resolve_all_toys_union(self, info, **kwargs):
-        return list(Toy.objects.all())
+    # @TODO unions
+    # all_toys_union = graphene.ConnectionField(ToyUnionConnection)
 
-    def resolve_toys(self, info):
-        return list(Toy.objects.all())
+    # def resolve_all_toys_union(self, info, **kwargs):
+    #     return list(Toy.objects.all())
 
 
 schema = graphene.Schema(
