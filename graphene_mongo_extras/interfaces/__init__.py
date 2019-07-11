@@ -6,14 +6,14 @@ from graphene_mongo.utils import is_valid_mongoengine_model
 from graphene_mongo.registry import Registry, get_global_registry
 
 
-class MongoengineInterfaceOptions(InterfaceOptions):
+class MongoNodeInterfaceOptions(InterfaceOptions):
     model = None
     # filter_fields = ()
     only_fields = ()
     exclude_fields = ()
 
 
-class MongoengineInterface(graphene.Interface):
+class MongoNodeInterface(graphene.Node):
     """
     Interface that derives fields from Mongoengine Document model.
 
@@ -49,13 +49,21 @@ class MongoengineInterface(graphene.Interface):
                                                     _as=graphene.Field)
 
         if not _meta:
-            _meta = MongoengineInterfaceOptions(cls)
+            _meta = MongoNodeInterfaceOptions(cls)
         _meta.model = model
-        _meta.fields = mongoengine_fields
         _meta.only_fields = only_fields
         _meta.exclude_fields = exclude_fields
-        # _meta.filter_fields = filter_fields
+        _meta.fields = mongoengine_fields
 
-        super(MongoengineInterface, cls).__init_subclass_with_meta__(
+        # super().__init__subclass_with_meta__ would run the method
+        # in AbstractNode, which breaks because the method does
+        # not accept a _meta argument. So we are replicating some of what
+        # AbstractNode.__init_subclass_with_meta__ does, and calling
+        # the method on AbstractNode's parent (Interface) instead.
+        _meta.fields['id'] = graphene.GlobalID(
+            cls,
+            description="The ID of the object."
+        )
+        super(graphene.Interface, cls).__init_subclass_with_meta__(
             _meta=_meta,
             **options)

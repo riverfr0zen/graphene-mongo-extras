@@ -3,7 +3,7 @@ from graphene_mongo.types import MongoengineObjectType, \
                                  MongoengineObjectTypeOptions
 from graphene.relay import Connection
 from .filtering.fields import FilteringConnectionField
-from .interfaces import MongoengineInterface
+from .interfaces import MongoNodeInterface
 
 __version__ = '0.4.0'
 
@@ -11,7 +11,7 @@ __all__ = [
     'MongoengineExtrasType',
     'CountableConnectionBase',
     'FilteringConnectionField',
-    'MongoengineInterface'
+    'MongoNodeInterface'
 ]
 
 

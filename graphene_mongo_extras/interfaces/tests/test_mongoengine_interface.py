@@ -45,6 +45,7 @@ def test_mongoengine_interface(setup_data, cleanup):
             }
         }
     }''')
+    assert 'data' in res
     assert len(res['data']['toys']) == 4
     assert 'packaging' in res['data']['toys'][0]
     assert res['data']['toys'][0]['packaging']['name'] == 'FifiPak'

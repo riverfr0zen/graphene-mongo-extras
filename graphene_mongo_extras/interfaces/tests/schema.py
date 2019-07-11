@@ -1,7 +1,8 @@
 import graphene
 from graphene_mongo import MongoengineObjectType, MongoengineConnectionField
-from graphene_mongo_extras import MongoengineInterface
+from graphene_mongo_extras import MongoNodeInterface
 from graphene.relay import Node, Connection
+from graphene_mongo_extras import MongoNodeInterface
 from graphene_mongo_extras.interfaces.tests.models import Toy, Packaging, \
                                                           Plushie, Videogame
 
@@ -14,7 +15,7 @@ class PackagingType(MongoengineObjectType):
         connection_field_class = MongoengineConnectionField
 
 
-class ToyInterface(MongoengineInterface):
+class ToyInterface(MongoNodeInterface):
     class Meta:
         model = Toy
 
@@ -38,7 +39,7 @@ class VideogameType(MongoengineObjectType):
 class PlushieNodeType(MongoengineObjectType):
     class Meta:
         model = Plushie
-        interfaces = (Node,)
+        interfaces = (ToyInterface,)
         connection_class = Connection
         connection_field_class = MongoengineConnectionField
 
@@ -46,7 +47,7 @@ class PlushieNodeType(MongoengineObjectType):
 class VideogameNodeType(MongoengineObjectType):
     class Meta:
         model = Videogame
-        interfaces = (Node,)
+        interfaces = (ToyInterface,)
         connection_class = Connection
         connection_field_class = MongoengineConnectionField
 
