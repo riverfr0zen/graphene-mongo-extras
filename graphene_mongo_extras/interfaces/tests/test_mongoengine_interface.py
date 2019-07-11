@@ -57,6 +57,7 @@ def test_mongoengine_interface(setup_data):
     assert 'data' in res
     assert len(res['data']['toys']) == 4
     assert 'packaging' in res['data']['toys'][0]
+
     d_fifi = res['data']['toys'][0]
     d_fifi_type, d_fifi_id = from_global_id(d_fifi['id'])
     assert d_fifi_type == 'PlushieType'
@@ -73,3 +74,51 @@ def test_mongoengine_interface(setup_data):
     assert res['data']['toys'][3]['packaging']['name'] == 'DSPak'
     assert 'genre' in res['data']['toys'][3]
     assert res['data']['toys'][3]['genre'] == 'masochism'
+
+
+def test_mongoengine_interface_with_connection(setup_data):
+
+    client = Client(schema)
+    res = client.execute('''{
+        allToysIface {
+            edges {
+                cursor
+                node {
+                    id
+                    name
+                    packaging {
+                        name
+                    }
+                    ...on PlushieType {
+                        animal
+                    }
+                    ...on VideogameType {
+                        genre
+                    }
+                }
+            }
+        }
+    }''')
+    assert 'data' in res
+    assert len(res['data']['allToysIface']['edges']) == 4
+    assert res['data']['allToysIface']['edges'][0]['cursor']
+    assert 'packaging' in res['data']['allToysIface']['edges'][0]['node']
+
+    d_fifi = res['data']['allToysIface']['edges'][0]['node']
+    d_fifi_type, d_fifi_id = from_global_id(d_fifi['id'])
+    assert d_fifi_type == 'PlushieType'
+    assert d_fifi_id == str(setup_data['fifi'].pk)
+
+    edges = res['data']['allToysIface']['edges']
+    assert edges[0]['node']['packaging']['name'] == 'FifiPak'
+    assert 'animal' in edges[0]['node']
+    assert edges[0]['node']['animal'] == 'dog'
+    assert edges[1]['node']['packaging']['name'] == 'KittyPak'
+    assert 'animal' in edges[1]['node']
+    assert edges[1]['node']['animal'] == 'cat'
+    assert edges[2]['node']['packaging']['name'] == 'ContraPak'
+    assert 'genre' in edges[2]['node']
+    assert edges[2]['node']['genre'] == 'shmup'
+    assert edges[3]['node']['packaging']['name'] == 'DSPak'
+    assert 'genre' in edges[3]['node']
+    assert edges[3]['node']['genre'] == 'masochism'
