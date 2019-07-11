@@ -7,6 +7,7 @@ An example Flask app to demonstrate [graphene_mongo_extras](https://github.com/r
 ```
 poetry install
 export FLASK_APP=examples/example_flask_app.py
+poetry shell
 flask run
 ```
 
