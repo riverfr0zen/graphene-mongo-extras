@@ -2,6 +2,7 @@ This project is in a very early state. It achieves the core functionality below,
 
 Better docs will come later. For now, please see the tests:
 * [filtering tests](graphene_mongo_extras/filtering/tests)
+* [interfaces tests](graphene_mongo_extras/interfaces/tests)
 * [other tests](graphene_mongo_extras/tests)
 
 See the `examples` folder for a demo app and query examples.
@@ -21,9 +22,14 @@ See the `examples` folder for a demo app and query examples.
 * [ ] Examine compatibility with various fields
 * [ ] Support reference fields and list of reference fields
 
+## Interfaces
+* [x] a way to set up interfaces (MongoNodeInterface)
+* [x] use interfaces with list fields
+* [x] use interfaces with connection fields
+* See [example app](examples/example_ifaces_app.py)
+
 ## Misc:
 * [x] total count in ConnectionField graphql queries (CountableConnectionBase)
-* [x] a way to set up interfaces (MongoengineInterface)
 
 ## Mutation support
 * [ ] MongoengineInputObjectType
@@ -33,6 +39,10 @@ See the `examples` folder for a demo app and query examples.
 * [ ] A way to implement embedded fields (and lists of) without having to use connections (i.e. return as SomeEmbeddedType or List[SomeEmbeddedType])
 
 # Changelog
+
+## 0.5.0
+* MongoengineInterface now extends graphene.Node and renamed to MongoNodeInterface.
+* Added [example app](examples/example_ifaces_app.py) showing the use of interfaces with list fields or connections.
 
 ## 0.4.0
 * Filtering
