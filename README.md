@@ -35,8 +35,6 @@ See the `examples` folder for a demo app and query examples.
 * [ ] MongoengineInputObjectType
     - An InputObjectType that derives from an assigned model
 
-## Embedded fields
-* [ ] A way to implement embedded fields (and lists of) without having to use connections (i.e. return as SomeEmbeddedType or List[SomeEmbeddedType])
 
 # Changelog
 
