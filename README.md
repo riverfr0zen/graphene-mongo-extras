@@ -40,6 +40,7 @@ See the `examples` folder for a demo app and query examples.
 
 ## 0.6.0
 * Dependencies updated
+* Support camel case params in orderBy
 
 ## 0.5.0
 * MongoengineInterface now extends graphene.Node and renamed to MongoNodeInterface.
