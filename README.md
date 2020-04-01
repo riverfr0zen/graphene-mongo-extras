@@ -38,6 +38,9 @@ See the `examples` folder for a demo app and query examples.
 
 # Changelog
 
+## 0.6.0
+* Dependencies updated
+
 ## 0.5.0
 * MongoengineInterface now extends graphene.Node and renamed to MongoNodeInterface.
 * Added [example app](examples/example_ifaces_app.py) showing the use of interfaces with list fields or connections.

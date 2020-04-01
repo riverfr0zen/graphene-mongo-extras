@@ -49,7 +49,9 @@ def setup_data(setup_mongo):
                 PlaythruInfo(difficulty="normal", continues=10),
                 PlaythruInfo(difficulty="hard", continues=5),
                 PlaythruInfo(difficulty="pain", continues=0),
-             ]).save(),
+             ],
+             metacritic_score=90,
+             opencritic_score=50).save(),
         Game(name='Space Invaders 2', publisher='Taito',
              scores=[
                 HighScore.objects.get(player='zin'),
@@ -64,7 +66,21 @@ def setup_data(setup_mongo):
              alt_options=[
                 PlaythruInfo(difficulty="why bother", continues=999),
                 PlaythruInfo(difficulty="mystery", continues=5),
-             ]).save(),
+             ],
+             metacritic_score=50,
+             opencritic_score=30).save(),
+        Game(name='Donkey Kong', publisher='Nintendo',
+             scores=[],
+             options=[
+                PlaythruInfo(difficulty="relaxed", continues=5),
+                PlaythruInfo(difficulty="intense", continues=1),
+             ],
+             alt_options=[
+                PlaythruInfo(difficulty="ninty hard", continues=999),
+                PlaythruInfo(difficulty="ninty easy", continues=5),
+             ],
+             metacritic_score=90,
+             opencritic_score=80).save(),
     ]
     # Teardown
     HighScore.drop_collection()
@@ -168,6 +184,27 @@ def test_filterset_depth():
 
     gam_filterset4 = FiltersRegistry.get('GameTypeFilterset4')
     assert not gam_filterset4
+
+
+def test_parse_order_by_arg():
+    field = FilteringConnectionField(HighScoreType)
+    assert field._parse_order_by_arg('player') == 'player'
+
+    field = FilteringConnectionField(HighScoreType)
+    parsed = field._parse_order_by_arg('-some_thing, +other_thing')
+    assert parsed == '-some_thing,+other_thing'
+
+    field = FilteringConnectionField(HighScoreType)
+    parsed = field._parse_order_by_arg('someThing')
+    assert parsed == 'some_thing'
+
+    field = FilteringConnectionField(HighScoreType)
+    parsed = field._parse_order_by_arg('-someThing, +otherThing')
+    assert parsed == '-some_thing,+other_thing'
+
+    field = FilteringConnectionField(HighScoreType)
+    parsed = field._parse_order_by_arg('-someThing, other_thing')
+    assert parsed == '-some_thing,other_thing'
 
 
 def test_order_by(setup_data):
@@ -423,8 +460,9 @@ def test_filtering_list_of_embedded_fields(setup_data):
                                         {},
                                         filtering=filtering_opt)
     objs = connection.iterable
-    assert objs.count() == 1
+    assert objs.count() == 2
     assert objs[0].name == "Space Invaders 2"
+    assert objs[1].name == "Donkey Kong"
 
     filtering_opt = {
           "op": "AND",
@@ -525,3 +563,107 @@ def test_filtering_connection_field_ordering(setup_data):
     print(res)
     assert res['data']['highscores']['edges'][0]['node']['player'] == 'bob'
     assert res['data']['highscores']['edges'][7]['node']['player'] == 'zin'
+
+    # Test orderBy with snake case options
+    res = client.execute('''{
+        games (orderBy: "metacritic_score, name") {
+            edges {
+                node {
+                    id
+                    name
+                    metacriticScore
+                }
+            }
+        }
+    }''')
+    print(res)
+    edges = res['data']['games']['edges']
+    assert edges[0]['node']['name'] == 'Space Invaders 2'
+    assert edges[1]['node']['name'] == 'Donkey Kong'
+    assert edges[2]['node']['name'] == 'Space Invaders'
+
+    res = client.execute('''{
+        games (orderBy: "-metacritic_score, +name") {
+            edges {
+                node {
+                    id
+                    name
+                    metacriticScore
+                }
+            }
+        }
+    }''')
+    print(res)
+    edges = res['data']['games']['edges']
+    assert edges[0]['node']['name'] == 'Donkey Kong'
+    assert edges[1]['node']['name'] == 'Space Invaders'
+    assert edges[2]['node']['name'] == 'Space Invaders 2'
+
+    res = client.execute('''{
+        games (orderBy: "-metacritic_score, -opencritic_score, +name") {
+            edges {
+                node {
+                    id
+                    name
+                    metacriticScore
+                }
+            }
+        }
+    }''')
+    print(res)
+    edges = res['data']['games']['edges']
+    assert edges[0]['node']['name'] == 'Donkey Kong'
+    assert edges[1]['node']['name'] == 'Space Invaders'
+    assert edges[2]['node']['name'] == 'Space Invaders 2'
+
+    # Test orderBy with camel case options
+    res = client.execute('''{
+        games (orderBy: "metacriticScore, name") {
+            edges {
+                node {
+                    id
+                    name
+                    metacriticScore
+                }
+            }
+        }
+    }''')
+    print(res)
+    edges = res['data']['games']['edges']
+    assert edges[0]['node']['name'] == 'Space Invaders 2'
+    assert edges[1]['node']['name'] == 'Donkey Kong'
+    assert edges[2]['node']['name'] == 'Space Invaders'
+
+    res = client.execute('''{
+        games (orderBy: "-metacriticScore, +name") {
+            edges {
+                node {
+                    id
+                    name
+                    metacriticScore
+                }
+            }
+        }
+    }''')
+    print(res)
+    edges = res['data']['games']['edges']
+    assert edges[0]['node']['name'] == 'Donkey Kong'
+    assert edges[1]['node']['name'] == 'Space Invaders'
+    assert edges[2]['node']['name'] == 'Space Invaders 2'
+
+    res = client.execute('''{
+        games (orderBy: "-metacriticScore, -opencriticScore, +name") {
+            edges {
+                node {
+                    id
+                    name
+                    metacriticScore
+                }
+            }
+        }
+    }''')
+    print(res)
+    edges = res['data']['games']['edges']
+    assert edges[0]['node']['name'] == 'Donkey Kong'
+    assert edges[1]['node']['name'] == 'Space Invaders'
+    assert edges[2]['node']['name'] == 'Space Invaders 2'

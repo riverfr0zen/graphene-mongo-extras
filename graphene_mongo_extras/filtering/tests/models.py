@@ -30,3 +30,5 @@ class Game(Document):
     scores = ListField(ReferenceField(HighScore))
     options = EmbeddedDocumentListField(PlaythruInfo)
     alt_options = ListField(EmbeddedDocumentField(PlaythruInfo))
+    metacritic_score = IntField()
+    opencritic_score = IntField()

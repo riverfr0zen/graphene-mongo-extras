@@ -1,5 +1,6 @@
 README.md
 README.rst
+pyproject.toml
 setup.py
 graphene_mongo_extras/__init__.py
 graphene_mongo_extras.egg-info/PKG-INFO

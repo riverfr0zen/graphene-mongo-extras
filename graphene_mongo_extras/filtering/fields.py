@@ -1,4 +1,5 @@
 import graphene
+import humps
 from graphene_mongo import MongoengineConnectionField
 from mongoengine.queryset.visitor import Q
 from graphql_relay.node.node import from_global_id
@@ -61,10 +62,17 @@ class FilteringConnectionField(MongoengineConnectionField):
 
         return q_node
 
+    @staticmethod
+    def _parse_order_by_arg(order_by):
+        if order_by is None:
+            return None
+        tokens = [humps.decamelize(tok.strip()) for tok in order_by.split(',')]
+        return ",".join(tokens)
+
     def _get_queryset(self, model, info, **args):
         # logger.debug(type(info.context))
         filtering_input = args.pop('filtering', None)
-        order_by = args.pop('order_by', None)
+        order_by = self._parse_order_by_arg(args.pop('order_by', None))
 
         q_args = None
         if filtering_input is not None:
