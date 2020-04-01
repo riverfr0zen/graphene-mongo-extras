@@ -15,7 +15,12 @@ graphene_mongo_extras/filtering/tests/conftest.py
 graphene_mongo_extras/filtering/tests/models.py
 graphene_mongo_extras/filtering/tests/test_filtering_connection_field.py
 graphene_mongo_extras/filtering/tests/types.py
+graphene_mongo_extras/interfaces/__init__.py
+graphene_mongo_extras/interfaces/tests/__init__.py
+graphene_mongo_extras/interfaces/tests/conftest.py
+graphene_mongo_extras/interfaces/tests/models.py
+graphene_mongo_extras/interfaces/tests/schema.py
+graphene_mongo_extras/interfaces/tests/test_mongoengine_interface.py
 graphene_mongo_extras/tests/conftest.py
 graphene_mongo_extras/tests/test_countable_connection_base.py
 graphene_mongo_extras/tests/test_mongoengine_extras_type.py
-graphene_mongo_extras/tests/test_mongoengine_interface.py
