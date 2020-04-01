@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graphene-mongo-extras"
-version = "0.5.0"
+version = "0.6.0"
 description = "Filtering and interfaces for graphene-mongo"
 authors = ["Irfan Baig <riverfr0zen@elitemail.org>"]
 
