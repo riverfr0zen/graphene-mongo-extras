@@ -8,7 +8,7 @@ from graphene_mongo_extras.interfaces.tests.schema import schema
 
 
 @pytest.fixture
-def setup_data():
+def setup_data(setup_mongo):
     fifipak = Packaging(name="FifiPak").save()
     fifi = Plushie(name="fifi", animal="dog",
                    packaging=fifipak).save()
