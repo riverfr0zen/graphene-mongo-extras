@@ -18,8 +18,8 @@ class InterfaceConnectionField(MongoengineConnectionField):
         assert (
             issubclass(_type, MongoengineObjectType) or
             issubclass(_type, MongoNodeInterface)
-        ), ("MongoengineConnectionField only accepts "
-            "MongoengineObjectType types")
+        ), ("InterfaceConnectionField only accepts MongoengineObjectType "
+            "types or MongoNodeInterface subclasses")
 
         assert _type._meta.connection, (f"The type {_type.__name__} "
                                         "doesn't have a connection")
