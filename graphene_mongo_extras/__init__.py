@@ -6,7 +6,7 @@ from .fields import InterfaceConnectionField
 from .filtering.fields import FilteringConnectionField
 from .interfaces import MongoNodeInterface
 
-__version__ = '0.6.0'
+__version__ = '0.7.0'
 
 __all__ = [
     'MongoengineExtrasType',
