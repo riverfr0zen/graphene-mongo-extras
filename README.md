@@ -25,7 +25,7 @@ See the `examples` folder for a demo app and query examples.
 ## Interfaces
 * [x] a way to set up interfaces (MongoNodeInterface)
 * [x] use interfaces with list fields
-* [x] use interfaces with connection fields
+* [x] use interfaces with connection fields (InterfaceConnectionField)
 * See [example app](examples/example_ifaces_app.py)
 
 ## Misc:
@@ -37,6 +37,11 @@ See the `examples` folder for a demo app and query examples.
 
 
 # Changelog
+
+## 0.7.0
+* Improved implementing interfaces. It is no longer necessary to create a separate `graphene.Connection` subclass. Now you use `IntefaceConnectionField` and pass in your `MongoNodeInterface` subclass directly. 
+    - NOTE: If you are doing it the old way, this may be a breaking change (haven't tested). In any case, it is recommended you switch to the new way.
+* `FilteringField` is now a subclass of `InterfaceConnectionField`. Shouldn't change anything except now it supports interface implementation as indicated above.
 
 ## 0.6.0
 * Dependencies updated

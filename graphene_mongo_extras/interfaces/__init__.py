@@ -1,6 +1,7 @@
 import graphene
+from graphene.relay.connection import ConnectionOptions
 from graphene.types.interface import InterfaceOptions
-from graphene_mongo.types import construct_fields
+from graphene_mongo.types import construct_fields, MongoengineObjectType
 from graphene.types.utils import yank_fields_from_attrs
 from graphene_mongo.utils import is_valid_mongoengine_model
 from graphene_mongo.registry import Registry, get_global_registry
@@ -8,9 +9,10 @@ from graphene_mongo.registry import Registry, get_global_registry
 
 class MongoNodeInterfaceOptions(InterfaceOptions):
     model = None
-    # filter_fields = ()
+    filter_fields = ()
     only_fields = ()
     exclude_fields = ()
+    connection_class = None
 
 
 class MongoNodeInterface(graphene.Node):
@@ -23,13 +25,13 @@ class MongoNodeInterface(graphene.Node):
     @classmethod
     def __init_subclass_with_meta__(cls, _meta=None, model=None,
                                     only_fields=(), exclude_fields=(),
-                                    # filter_fields=None,
+                                    filter_fields=(), connection_class=None,
                                     registry=None, **options):
-
-        assert is_valid_mongoengine_model(model), (
-            'The attribute model in {}.Meta must be a valid Mongoengine '
-            'Model. Received "{}" instead.'
-        ).format(cls.__name__, type(model))
+        if model:
+            assert is_valid_mongoengine_model(model), (
+                'The attribute model in {}.Meta must be a valid Mongoengine '
+                'Model. Received "{}" instead.'
+            ).format(cls.__name__, type(model))
 
         # Not adding to registry, since it only supports
         # MongoengineObjectType. Only using registry because required
@@ -53,7 +55,12 @@ class MongoNodeInterface(graphene.Node):
         _meta.model = model
         _meta.only_fields = only_fields
         _meta.exclude_fields = exclude_fields
+        _meta.connection_class = connection_class
         _meta.fields = mongoengine_fields
+        if _meta.connection_class is not None:
+            _meta.connection = _meta.connection_class.create_type(
+                "{}Connection".format(cls.__name__), node=cls
+            )
 
         # super().__init__subclass_with_meta__ would run the method
         # in AbstractNode, which breaks because the method does

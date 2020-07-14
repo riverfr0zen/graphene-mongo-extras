@@ -8,7 +8,7 @@ from graphene_mongo_extras.interfaces.tests.schema import schema
 
 
 @pytest.fixture
-def setup_data():
+def setup_data(setup_mongo):
     fifipak = Packaging(name="FifiPak").save()
     fifi = Plushie(name="fifi", animal="dog",
                    packaging=fifipak).save()
@@ -21,6 +21,9 @@ def setup_data():
     dspak = Packaging(name="DSPak").save()
     ds = Videogame(name="Dark Souls", genre="masochism",
                    packaging=dspak).save()
+    kitty_game_pak = Packaging(name="KittyGamePak").save()
+    kitty_game = Videogame(name="kitty", genre="children",
+                           packaging=kitty_game_pak).save()
     yield {
         'fifipak': fifipak,
         'fifi': fifi,
@@ -55,7 +58,7 @@ def test_mongoengine_interface(setup_data):
         }
     }''')
     assert 'data' in res
-    assert len(res['data']['toys']) == 4
+    assert len(res['data']['toys']) == 5
     assert 'packaging' in res['data']['toys'][0]
 
     d_fifi = res['data']['toys'][0]
@@ -97,10 +100,12 @@ def test_mongoengine_interface_with_connection(setup_data):
                     }
                 }
             }
+            totalCount
         }
     }''')
     assert 'data' in res
-    assert len(res['data']['allToysIface']['edges']) == 4
+    assert res['data']['allToysIface']['totalCount'] == 5
+    assert len(res['data']['allToysIface']['edges']) == 5
     assert res['data']['allToysIface']['edges'][0]['cursor']
     assert 'packaging' in res['data']['allToysIface']['edges'][0]['node']
 
@@ -122,3 +127,37 @@ def test_mongoengine_interface_with_connection(setup_data):
     assert edges[3]['node']['packaging']['name'] == 'DSPak'
     assert 'genre' in edges[3]['node']
     assert edges[3]['node']['genre'] == 'masochism'
+
+    res = client.execute('''{
+        allToysIface (name: "kitty") {
+            edges {
+                cursor
+                node {
+                    id
+                    name
+                    packaging {
+                        name
+                    }
+                    ...on PlushieType {
+                        animal
+                    }
+                    ...on VideogameType {
+                        genre
+                    }
+                }
+            }
+            totalCount
+        }
+    }''')
+    print(res)
+    assert 'data' in res
+    assert res['data']['allToysIface']['totalCount'] == 2
+    assert len(res['data']['allToysIface']['edges']) == 2
+    assert res['data']['allToysIface']['edges'][0]['cursor']
+    assert 'packaging' in res['data']['allToysIface']['edges'][0]['node']
+
+    edges = res['data']['allToysIface']['edges']
+    assert edges[0]['node']['packaging']['name'] == 'KittyPak'
+    assert 'animal' in edges[0]['node']
+    assert edges[1]['node']['packaging']['name'] == 'KittyGamePak'
+    assert 'genre' in edges[1]['node']

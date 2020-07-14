@@ -1,12 +1,12 @@
 import graphene
 import humps
-from graphene_mongo import MongoengineConnectionField
 from mongoengine.queryset.visitor import Q
 from graphql_relay.node.node import from_global_id
 from graphene_mongo_extras.filtering import filterset_factory
+from graphene_mongo_extras.fields import InterfaceConnectionField
 
 
-class FilteringConnectionField(MongoengineConnectionField):
+class FilteringConnectionField(InterfaceConnectionField):
     def __init__(self, type, *args, **kwargs):
         if hasattr(type._meta, 'filtering'):
             filtering_opts = type._meta.filtering
